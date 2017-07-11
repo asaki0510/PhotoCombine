@@ -1,3 +1,4 @@
+<?php include_once "./common.php"; ?>
 <?php
     if(empty($_POST)){
         echo json_encode(array(
@@ -47,7 +48,7 @@
             'data'   => array(
                 'imgUrl' =>
                 // "http://".$_SERVER['HTTP_HOST']."/2017/skii01/uploads/".$fileName
-                "http://".$_SERVER['HTTP_HOST']."/2016/nikki/photo0710/uploads/".$fileName
+                "http://".$_SERVER['HTTP_HOST'].$base_dir."/uploads/".$fileName
                 
             )
         ));

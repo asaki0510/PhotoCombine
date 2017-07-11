@@ -15,9 +15,9 @@ $event_descrip = "zzz";
 $event_icofb   = "{$event_url}images/fb.jpg";
 
 
-// $facebook_app_id = FB_APP2_ID;
+$facebook_app_id = FB_APP2_ID;
 //$facebook_app_id = FB_APP_BAZAAR_ID;
-$facebook_app_id = FB_APP_COSMO_ID;
+// $facebook_app_id = FB_APP_COSMO_ID;
 //$facebook_app_id = FB_APP_HEARST_ID;
 
 $facebook_scope = 'email,public_profile,user_birthday';
