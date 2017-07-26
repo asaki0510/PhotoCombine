@@ -1,4 +1,4 @@
-<?php// include_once "./common.php"; ?>
+<?php include_once "./common.php"; ?>
 <!DOCTYPE html>
 <html lang="zh-TW">
     <head>
@@ -51,7 +51,7 @@
 <body>
 
 
-    <canvas id="canvas_game" width="330" height="330" data-canvas-size="330"></canvas>
+    <canvas id="canvas_game" width="600" height="600" data-canvas-size="600"></canvas>
     <!-- <canvas id="canvas" width="330" height="330"></canvas> -->
     <img id="canvasImg" />
 	<p>
@@ -65,15 +65,16 @@
     <button id="fbShare">分享到fb</button>
     <button id="save">save</button>
     <button id="reset">reset</button>
-
+    <button id="reset-text">reset text</button>
+    <button id="reset-picture">reset picture</button>
     <h3>fb分享圖預覽</h3>
     <img id="canvasImg_share" />
-    <canvas id="canvas_share" width="1200" height="627"></canvas>
+    <canvas id="canvas_share" width="330" height="330" data-canvasShare-size="330"></canvas>
 
     <script src="./js/fabric.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="js/img.js"></script>
+    <script src="js/img-text.js"></script>
 <script>
 
 </script>

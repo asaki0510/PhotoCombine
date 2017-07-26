@@ -27,7 +27,7 @@
     $data = base64_decode($img);
 */
     
-    $fileName = uniqid() . '.png';
+    $fileName = uniqid() . '.jpg';
     $file = UPLOAD_PATH . $fileName;
 
     if(file_exists($file)){

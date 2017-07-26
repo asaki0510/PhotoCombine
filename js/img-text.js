@@ -10,6 +10,10 @@ var extendPixel = 0;
 var horizontalBorderLimit = 0; //水平邊界
 var verticalBorderLimit = 0; //垂直邊界
 var imageScale = 1;
+var send2server_flag= false;
+
+// temp object for index
+var uploadedImgObj,tempImg,inputTextArea,iText7;
 
 // fb share-----
 var canvas_share = new fabric.Canvas('canvas_share');
@@ -87,12 +91,19 @@ function reqFbPic(){
        fbimg.src = e.data.url;
        fbimg.onload = function(e) {
         import_fbPic(fbimg);
+        canvasEle_setZindex();
       }
   })
 }
 
 // include fb sdk---------------
-
+function canvasEle_setZindex()
+{
+  canvas_game.moveTo(uploadedImgObj,7);          
+  canvas_game.moveTo(tempImg, 8);
+  canvas_game.moveTo(inputTextArea,9);
+  canvas_game.moveTo(iText7, 10);     
+}
 $( document ).ready(function() {
         canvas_game.on({
             'object:moving': function(e) {
@@ -114,15 +125,132 @@ $( document ).ready(function() {
                 //right corner
                 if(obj.getBoundingRect().left+obj.getBoundingRect().width  > obj.canvas.width + horizontalBorderLimit){
                     obj.left = Math.min(obj.left, obj.canvas.width-obj.getBoundingRect().width+obj.left-obj.getBoundingRect().left) + horizontalBorderLimit;
-                }            
-               
+                }
+
             },
             'object:modified': function(e) {
-              e.target.opacity = 1;
-           }
-        });      
-        canvas_game.setOverlayImage('images/background.png', canvas_game.renderAll.bind(canvas_game));
+              canvasEle_setZindex();                   
+              canvas_game.deactivateAll().renderAll();     
+              focusText(); 
+              iText7.enterEditing();   
+              e.target.opacity = 1;              
+           },
+           'mouse:down': function(e) {
+              canvasEle_setZindex();                  
+              canvas_game.deactivateAll().renderAll();   
+              focusText();
+              iText7.enterEditing();   
+           },
+           // 'mouse:over': function(e) {
+           //    var obj = e.target;
+           //    //  e.target.setFill('red');
+           //    // canvas_game.renderAll();
+           //    if(obj.name == 'backgroundText')
+           //      $('.upper-canvas').css( 'cursor', 'text' );         
+           // }
 
+        });      
+        //disable group select
+        canvas_game.selection = false;
+        
+        //文字匡背景=======================
+        var backgroundText = new fabric.Image.fromURL('images/template.svg', function(img) {
+            img.set({
+                 name:'backgroundText',
+                hasBorders : false,
+                hasControls: !1,
+                originX: "right",
+                originY: "bottom",
+                left: canvas_game.getWidth(),
+                top: canvas_game.getHeight() - 20,
+                scaleX: .525,
+                scaleY: .525,
+                selectable: !1
+                // hoverCursor : 'text'    
+            });
+          canvas_game.add(img);          
+          tempImg = img;
+          canvas_game.moveTo(tempImg, 8);
+        });
+        //文字匡背景=======================
+        //文字匡fixed width================
+        inputTextArea = new fabric.Rect({
+            name:'inputTextArea',
+            width: 200,
+            height: 75,
+            hoverCursor: "text",
+            opacity: 0,
+            top: canvas_game.getHeight() - 60,
+            left: canvas_game.getWidth() - 100,
+            originX: "center",
+            originY: "center",
+            lockMovementX: !0,
+            lockMovementY: !0,
+            hasBorders: !1,
+            hasControls: !1,
+            hasRotatingPoint: !1,            
+            moveCursor:'text'
+        })
+        canvas_game.add(inputTextArea);
+        canvas_game.moveTo(inputTextArea, 9);
+        //================
+        //文字匡設置=======================
+        iText7 = new fabric.IText('', {
+          name:'iText7',
+          originX: "center",
+          originY: "center",
+          textAlign: "center",
+          cache: !1,
+          hoverCursor: "text",
+          hasBorders: !1,
+          hasControls: !1,
+          hasRotatingPoint: !1,
+          maxWidth: 150,
+          top: canvas_game.getHeight() - 60,
+          left: canvas_game.getWidth() - 100,
+          fontFamily: "'Noto Sans TC', Helvetica, Arial, '黑體-繁', 'Heiti TC', '儷黑', 'LiHei', '微軟正黑體', 'Microsoft JhengHei', sans-serif",
+          fontSize: 64,
+          lockMovementX: !0,
+          lockMovementY: !0
+        });
+        canvas_game.add(iText7).setActiveObject(iText7);
+        canvas_game.moveTo(iText7, 10);
+        iText7.enterEditing();
+        //==================================
+        // iText7.on('editing:exited', function () {
+        //   canvasEle_setZindex();                    
+        // });
+        
+
+         //文字匡設置=======================
+         // var ia = canvas_game.getItemByName('inputTextArea');
+         // canvas_game.on('mouse:down', focusText);
+
+        // iText7.on('mouse:over', function () {
+           
+        //    $('.upper-canvas').css( 'cursor', 'text' );                  
+        // });
+
+
+         canvas_game.on({
+            'object:selected': function(e) {
+              canvasEle_setZindex();    
+              var obj = e.target;
+              canvasEle_setZindex();
+              if(obj.name == 'inputTextArea')
+                focusText();
+            }});
+         function focusText(){
+            canvas_game.setActiveObject(iText7);
+            iText7.enterEditing();
+         }
+
+        canvas_game.on('text:changed', function(e) {
+            console.log('text:changed', e.target.text);
+            textCheck(e.target.text);
+        });
+
+        // canvas_game.setOverlayImage('images/template.svg', canvas_game.renderAll.bind(canvas_game));
         // 上傳照片============================================
         $('#uploadedImg').change(function(e) {         
           var flag = checkFileSize(event.target.files);
@@ -149,7 +277,7 @@ $( document ).ready(function() {
     			value: 0,
     			slide: function(event, ui) {
         			$("#amount").val(ui.value);     
-              var obj = canvas_game.getObjects()[0];              
+              var obj = uploadedImgObj;              
               var Scale = (100 + ui.value) / 100;
               var changeWidth = uploadedImgwidth * Scale;
               var changeHeight = uploadedImgHeight * Scale;
@@ -179,11 +307,33 @@ $( document ).ready(function() {
   		});
   		$("#amount").val( $("#slider").slider("value"));
 });    
+
+/**
+ * Item name is unique
+ */
+fabric.Canvas.prototype.getItemByName = function(name) {
+  var object = null,
+      objects = this.getObjects();
+
+  for (var i = 0, len = this.size(); i < len; i++) {
+    if (objects[i].name && objects[i].name === name) {
+      object = objects[i];
+      break;
+    }
+  }
+
+  return object;
+};
+
+function textCheck(text){
+
+}
+
 function create_resultPic(download_flag,canvas_box,x,y,width,height){
   var ctx = canvas_box.getContext ? canvas_box.getContext('2d') : null;
   var baseimage = new Image();
   ctx.drawImage(baseimage,x,y,width,height);    
-  var dataURL = canvas_box.toDataURL("image/png");
+  var dataURL = canvas_box.toDataURL("image/jpg");
   document.getElementById('canvasImg').src = dataURL;
   
   if(download_flag){
@@ -222,18 +372,21 @@ function imgDownload(imgurl){
     //使用者下載 此方法在ios無效
     var link = document.createElement("a");
     link.href = imgurl;
-    link.download = "mypainting.png";
+    link.download = "mypainting.jpg";
     link.click();
 }
   
 function sendImgToServer(imgurl){
+    var flag = false;
     // 鎖住該按鈕避免重複送出=====
-
+    $('#save').prop('disabled', true);
+    $('#fbShare').prop('disabled', true);
      // 自動存放至路徑資料夾內
     $.ajax({
       type: "POST",
       url: "save.php",
       dataType: 'json',
+      async: false,
       data: { 
          // imgBase64: dataURL
          base64: imgurl
@@ -241,7 +394,13 @@ function sendImgToServer(imgurl){
     }).done(function(o) {
       console.log('res:'+o.msg); 
       console.log('resImg:'+o.data.imgUrl); 
+      apidata['user_canvas_pic_url'] = o.data.imgUrl;
+      send2server_flag = true;
+      $('#save').prop('disabled', false);
+      $('#fbShare').prop('disabled', false);
+      flag = true;
     });
+    return flag;
 }
 
 function checkFileSize(obg){
@@ -302,13 +461,15 @@ function importPicToCanvas(target){
           });
           uploadedImgHeight = image.height;
           uploadedImgwidth = image.width;
-          canvas_game.centerObject(image);
+          //canvas_game.centerObject(image);
           canvas_game.add(image);
-          canvas_game.renderAll();
+          canvas_game.moveTo(image,1);
+          uploadedImgObj = image;
+          //canvas_game.renderAll();
         }
       }
       fileReader.readAsDataURL(target);
-      apidata['user_canvas_pic'] = imgObj;
+      //apidata['user_canvas_pic'] = imgObj;
 }
 function import_fbPic(imgObj){
       canvasReset(canvas_game); 
@@ -330,10 +491,11 @@ function import_fbPic(imgObj){
       canvas_game.centerObject(image);
       canvas_game.add(image);
       canvas_game.renderAll();
+      uploadedImgObj = image;
 
        apidata['user_canvas_pic'] = imgObj;
 }
-function import_share(imgObj,x,y,scaleX,scaleY){
+function import_share(imgObj,x,y){
       // canvasReset(canvas_share); 
       var image = new fabric.Image(imgObj);
       // fb的圖片會是正方形的
@@ -343,14 +505,14 @@ function import_share(imgObj,x,y,scaleX,scaleY){
       image.set({       
             left: x,
             top: y,            
-            scaleX: scaleX,
-            scaleY: scaleY,
+            // scaleX: imageScale,
+            // scaleY: imageScale,
             hasControls : false,
             hasBorders : false
       });
       uploadedImgHeight = image.height;
       uploadedImgwidth = image.width;
-      //canvas_share.centerObject(image);
+      canvas_share.centerObject(image);
       canvas_share.add(image);
       canvas_share.renderAll();
 }
@@ -365,9 +527,13 @@ function InitialParam(){
 }
 
 function canvasReset(canvas_ele){
-  var obj = canvas_ele.getObjects()[0];
-    if (typeof obj !== "undefined") {
-        obj.remove();
+  //var obj = canvas_ele.getObjects()[0];
+    if (typeof uploadedImgObj !== "undefined") {
+        // uploadedImgObj.remove();
+        // canvas_ele.remove(uploadedImgObj);
+        canvas_ele.clear();
+        //重新放文字輸入匡跟文字背景
+        send2server_flag = false;
     } 
 }
 $("#reset").click(function(event) {
@@ -394,90 +560,26 @@ var itemsRender = function() {
 };
 
 $("#fbShare").on("click", function() {
+    $('#save').prop('disabled', true);
+     $('#fbShare').prop('disabled', true);
 
-    // var url = create_resultPic(false,canvas_game,0,0,canvasSize,canvasSize);
-    // sendImgToServer(url);
-    var userimgurl = new Image();
-    var backimgurl = new Image();
-   
-        // userimgurl.src = apidata['user_canvas_pic'];
-        userimgurl = apidata['user_canvas_pic'];
-        backimgurl.src = 'images/fbshare-bg.jpg';
-        backimgurl.onload = function() {
-          var bkScaleX=backimgurl.width / 2 / userimgurl.width;
-          var bkScaleY=backimgurl.height / userimgurl.height; 
-          import_share(backimgurl,0,0,1,1);
-          import_share(userimgurl,0,0,bkScaleX,bkScaleY);
-        };
-        
+    var url = create_resultPic(false,canvas_game,0,0,canvasSize,canvasSize);
+    var flag;
+    if(send2server_flag==false)
+      flag = sendImgToServer(url);
 
-
-    //canvasReset(canvas_share);
-
-    // userimgurl.onload = function() {
-        
-       // canvas_share.setOverlayImage('images/fbshare-bg.jpg', canvas_share.renderAll.bind(canvas_share));
-
-        // var url = create_resultPic_shareUse(canvas_share,20,20,fbShareUserPic_size,fbShareUserPic_size);
-        // sendImgToServer(url);
-      // 塞使用者圖片到分享圖背景 把目前使用者玩的進度存檔到server
-        // itemsRender();
-        // setTimeout(function() {
-        //     var dataUrl = canvas_share.toDataURL('image/png');
-        //     $.post('save.php', {
-        //         base64: dataUrl
-        //     }, (function(ret) {
-        //         apidata['imgurlshare'] = ret.data.imgUrl;
-        //         console.log(apidata['imgurlshare']);
-        //         // if (isMobile()) {
-        //         //     // $.post('api.php', {
-        //         //     //     route: 'getusersession',
-        //         //     //     data: apidata,
-        //         //     // }, (function(ret) {
-        //         //         var returnUrl = '%26imgurl%3D'+apidata['imgurl']+'%26constellation%3D'+constellation;
-        //         //         var url = 'https://www.facebook.com/dialog/feed?app_id='+app_id+'&picture='+apidata['imgurlshare']+'&link='+location.href+'&redirect_uri='+location.href+'api.php?route=post_id'+ returnUrl +'&display=popup';
-        //         //         location.href = url;
-        //         //     // }), 'json');
-        //         // } else {
-        //         //     FB.ui({
-        //         //         method: 'feed',
-        //         //         link: location.href,
-        //         //         picture: apidata['imgurlshare']
-        //         //     }, function(response) {
-        //         //         if (response && !response.error_code) {
-        //         //             apidata['action'] = 'feed';
-        //         //             apidata['post_id'] = response.post_id;
-        //         //             if (response.post_id ){
-        //         //                 FB.api( '/' + response.post_id, function( response ) {
-        //         //                     apidata['message'] = response.message || '';
-        //         //                     // request = $.ajax({
-        //         //                     //     url: "post.php",
-        //         //                     //     type: "POST",
-        //         //                     //     dataType: "json",
-        //         //                     //     data: apidata
-        //         //                     // });
-        //         //                     // request.done(function(r) {
-        //         //                     //   if (r.success) {
-        //         //                     //     alert(r.error);
-        //         //                     //     //window.location.href = r.redirect;
-        //         //                     //   } else {
-        //         //                     //     alert('分享失敗');
-        //         //                     //     //window.location.href = r.redirect;
-        //         //                     //   }
-        //         //                     // });
-        //         //                     // request.fail(function(jqXHR, textStatus) {
-        //         //                     //     alert('分享失敗');
-        //         //                     // });
-        //         //                 } );
-        //         //             }
-        //         //         } else{
-        //         //             //AjaxLoadingRemove();
-        //         //         }
-
-        //         //     });
-        //         // }
-
-        //     }), 'json');
-        // }, 500);
-    // };
+    // var fblink = "http://e.hearst-taiwan.com.tw/2016/nikki/photo0710/"+"share.php?img="+apidata['user_canvas_pic_url'];
+    console.log("fblink:"+fblink);
+      // if(flag){
+          console.log("userimgurl:"+apidata['user_canvas_pic_url']);
+          FB.ui({
+              method: "feed",
+              link: apidata['user_canvas_pic_url'],
+              hashtag: "#ImPretty",
+              display: "popup"
+          }, function(e) {
+             console.log("share action");
+          })
+      // }
+      
 });

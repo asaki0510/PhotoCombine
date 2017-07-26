@@ -3,7 +3,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/event/common.php';
 
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === "on" ? "https://" : "http://";
 $base_dir = str_replace(realpath($_SERVER['DOCUMENT_ROOT']), '', dirname(__FILE__)) . DIRECTORY_SEPARATOR;
-$base_dir = '/2016/nikki/photo0710';
+$base_dir = '/2016/nikki/photo0710/';
 $event_url = $protocol . $_SERVER['HTTP_HOST'] . $base_dir;
 $dismiss_url = $protocol . $_SERVER['HTTP_HOST'] . "/event/close.html";
 $redirect_url = $event_url; //'http://www.elle.com.tw';
